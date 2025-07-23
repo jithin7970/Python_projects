@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Password Generator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font and general aesthetics */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 2.5rem; /* Increased padding */
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* Stronger shadow */
+            max-width: 28rem; /* Increased max width */
+            width: 100%;
+            border: 1px solid #e2e8f0; /* Subtle border */
+        }
+        .input-group label {
+            font-weight: 600; /* Semi-bold labels */
+            color: #334155; /* Darker text for labels */
+        }
+        .input-group input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 8px; /* Thicker slider */
+            background: #cbd5e1; /* Light gray track */
+            border-radius: 5px;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+        }
+        .input-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px; /* Larger thumb */
+            height: 20px; /* Larger thumb */
+            border-radius: 50%;
+            background: #4f46e5; /* Indigo thumb */
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .input-group input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .checkbox-group input[type="checkbox"] {
+            accent-color: #4f46e5; /* Indigo checkbox */
+            width: 1.25rem; /* Larger checkbox */
+            height: 1.25rem; /* Larger checkbox */
+        }
+        .btn {
+            background-color: #4f46e5; /* Indigo button */
+            color: white;
+            padding: 0.75rem 1.5rem; /* More padding */
+            border-radius: 0.75rem; /* More rounded */
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn:hover {
+            background-color: #4338ca; /* Darker indigo on hover */
+            transform: translateY(-1px); /* Slight lift effect */
+        }
+        .btn:active {
+            transform: translateY(0); /* Press down effect */
+            box-shadow: none;
+        }
+        .password-display {
+            background-color: #e0e7ff; /* Lighter indigo background */
+            border: 1px solid #a5b4fc; /* Indigo border */
+            color: #3730a3; /* Darker indigo text */
+            min-height: 3rem; /* Ensure it has some height */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            word-break: break-all; /* Break long words */
+        }
+        .copy-btn {
+            background-color: #6366f1; /* Slightly lighter indigo for copy */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+        .copy-btn:hover {
+            background-color: #4f46e5;
+        }
+        .message-box {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background-color: #10b981; /* Green for success */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            z-index: 1000;
+        }
+        .message-box.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Password Generator</h1>
+
+        <!-- Password Length Slider -->
+        <div class="input-group mb-6">
+            <label for="passwordLength" class="block text-sm mb-2">Password Length: <span id="lengthValue">12</span></label>
+            <input type="range" id="passwordLength" min="6" max="32" value="12" class="w-full">
+        </div>
+
+        <!-- Character Type Checkboxes -->
+        <div class="checkbox-group mb-6 space-y-3">
+            <div class="flex items-center">
+                <input type="checkbox" id="includeUppercase" checked class="mr-2">
+                <label for="includeUppercase" class="text-sm text-gray-700">Include Uppercase Letters (A-Z)</label>
+            </div>
+            <div class="flex items-center">
+                <input type="checkbox" id="includeLowercase" checked class="mr-2">
+                <label for="includeLowercase" class="text-sm text-gray-700">Include Lowercase Letters (a-z)</label>
+            </div>
+            <div class="flex items-center">
+                <input type="checkbox" id="includeNumbers" checked class="mr-2">
+                <label for="includeNumbers" class="text-sm text-gray-700">Include Numbers (0-9)</label>
+            </div>
+            <div class="flex items-center">
+                <input type="checkbox" id="includeSymbols" checked class="mr-2">
+                <label for="includeSymbols" class="text-sm text-gray-700">Include Symbols (!@#$%^&*)</label>
+            </div>
+        </div>
+
+        <!-- Suggested Characters Input -->
+        <div class="input-group mb-8">
+            <label for="suggestedChars" class="block text-sm mb-2">Suggested Characters (optional):</label>
+            <input type="text" id="suggestedChars" placeholder="e.g., #$%@" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <!-- Generate Button -->
+        <button id="generateBtn" class="btn w-full mb-6">Generate Password</button>
+
+        <!-- Password Display Area -->
+        <div class="password-display p-4 rounded-lg text-lg font-medium">
+            <span id="generatedPassword" class="flex-grow">Your password will appear here</span>
+            <button id="copyBtn" class="copy-btn ml-4">Copy</button>
+        </div>
+    </div>
+
+    <!-- Message Box for notifications -->
+    <div id="messageBox" class="message-box"></div>
+
+    <script>
+        // Get DOM elements
+        const passwordLengthSlider = document.getElementById('passwordLength');
+        const lengthValueSpan = document.getElementById('lengthValue');
+        const includeUppercaseCheckbox = document.getElementById('includeUppercase');
+        const includeLowercaseCheckbox = document.getElementById('includeLowercase');
+        const includeNumbersCheckbox = document.getElementById('includeNumbers');
+        const includeSymbolsCheckbox = document.getElementById('includeSymbols');
+        const suggestedCharsInput = document.getElementById('suggestedChars');
+        const generateBtn = document.getElementById('generateBtn');
+        const generatedPasswordSpan = document.getElementById('generatedPassword');
+        const copyBtn = document.getElementById('copyBtn');
+        const messageBox = document.getElementById('messageBox');
+
+        // Update password length display
+        passwordLengthSlider.addEventListener('input', () => {
+            lengthValueSpan.textContent = passwordLengthSlider.value;
+        });
+
+        // Function to show a message (e.g., "Copied!")
+        function showMessage(message, type = 'success') {
+            messageBox.textContent = message;
+            messageBox.className = `message-box show ${type === 'success' ? 'bg-green-500' : 'bg-red-500'}`;
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 2000); // Hide after 2 seconds
+        }
+
+        // --- Core Password Generation Logic (Mimicking Python's approach) ---
+        function generatePassword() {
+            const length = parseInt(passwordLengthSlider.value);
+            const includeUppercase = includeUppercaseCheckbox.checked;
+            const includeLowercase = includeLowercaseCheckbox.checked;
+            const includeNumbers = includeNumbersCheckbox.checked;
+            const includeSymbols = includeSymbolsCheckbox.checked;
+            const suggestedChars = suggestedCharsInput.value;
+
+            let characters = '';
+            let guaranteedChars = []; // To ensure at least one of each selected type is present
+
+            // Define character sets
+            const uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const lowercaseChars = 'abcdefghijklmnopqrstuvwxyz';
+            const numberChars = '0123456789';
+            const symbolChars = '!@#$%^&*()_-+=[]{}|;:,.<>?';
+
+            // Build the pool of characters based on selected options
+            if (includeUppercase) {
+                characters += uppercaseChars;
+                guaranteedChars.push(uppercaseChars[Math.floor(Math.random() * uppercaseChars.length)]);
+            }
+            if (includeLowercase) {
+                characters += lowercaseChars;
+                guaranteedChars.push(lowercaseChars[Math.floor(Math.random() * lowercaseChars.length)]);
+            }
+            if (includeNumbers) {
+                characters += numberChars;
+                guaranteedChars.push(numberChars[Math.floor(Math.random() * numberChars.length)]);
+            }
+            if (includeSymbols) {
+                characters += symbolChars;
+                guaranteedChars.push(symbolChars[Math.floor(Math.random() * symbolChars.length)]);
+            }
+
+            // Add suggested characters to the pool and ensure they are used
+            if (suggestedChars) {
+                characters += suggestedChars;
+                // Add suggested characters to guaranteedChars, ensuring they are used if possible
+                for (let i = 0; i < suggestedChars.length; i++) {
+                    // Only add if there's still room in the password length
+                    if (guaranteedChars.length < length) {
+                        guaranteedChars.push(suggestedChars[i]);
+                    } else {
+                        // If password length is too small to fit all suggested chars,
+                        // just add them to the general pool and let random selection pick them
+                        break;
+                    }
+                }
+            }
+
+            // Handle case where no character types are selected
+            if (characters.length === 0) {
+                showMessage('Please select at least one character type or provide suggested characters.', 'error');
+                return '';
+            }
+
+            let password = '';
+
+            // First, add the guaranteed characters to the password
+            // Shuffle guaranteedChars to distribute them randomly
+            guaranteedChars.sort(() => Math.random() - 0.5);
+            for (let i = 0; i < guaranteedChars.length; i++) {
+                password += guaranteedChars[i];
+            }
+
+            // Fill the rest of the password length with random characters from the full pool
+            for (let i = password.length; i < length; i++) {
+                const randomIndex = Math.floor(Math.random() * characters.length);
+                password += characters[randomIndex];
+            }
+
+            // Shuffle the final password to ensure randomness of guaranteed characters' positions
+            password = password.split('').sort(() => Math.random() - 0.5).join('');
+
+            return password;
+        }
+
+        // Event listener for Generate Button
+        generateBtn.addEventListener('click', () => {
+            const newPassword = generatePassword();
+            generatedPasswordSpan.textContent = newPassword || 'No password generated.';
+        });
+
+        // Event listener for Copy Button
+        copyBtn.addEventListener('click', () => {
+            const passwordToCopy = generatedPasswordSpan.textContent;
+            if (passwordToCopy && passwordToCopy !== 'Your password will appear here' && passwordToCopy !== 'No password generated.') {
+                // Use document.execCommand('copy') for better compatibility in iframes
+                const textArea = document.createElement('textarea');
+                textArea.value = passwordToCopy;
+                textArea.style.position = 'fixed'; // Prevent scrolling to bottom of page in some browsers
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showMessage('Password copied to clipboard!');
+                } catch (err) {
+                    console.error('Failed to copy password: ', err);
+                    showMessage('Failed to copy password.', 'error');
+                }
+                document.body.removeChild(textArea);
+            } else {
+                showMessage('Nothing to copy!', 'error');
+            }
+        });
+
+        // Initial password generation on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const initialPassword = generatePassword();
+            generatedPasswordSpan.textContent = initialPassword || 'No password generated.';
+        });
+
+    </script>
+</body>
+</html>
